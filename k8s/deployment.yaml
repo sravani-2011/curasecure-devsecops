@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: curasecure
+  namespace: curasecure
+  labels: { app: curasecure }
+spec:
+  replicas: 2
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels: { app: curasecure }
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: { maxUnavailable: 0, maxSurge: 1 }
+  template:
+    metadata:
+      labels: { app: curasecure }
+    spec:
+      serviceAccountName: curasecure
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: portal
+          image: IMAGE_PLACEHOLDER:VERSION_PLACEHOLDER   # set by Jenkins: <user>/curasecure:<build>-<sha>
+          imagePullPolicy: IfNotPresent
+          ports:
+            - { name: http, containerPort: 3000 }
+          env:
+            - { name: APP_VERSION,  value: "VERSION_PLACEHOLDER" }
+            - { name: BUILD_NUMBER, value: "BUILD_PLACEHOLDER" }
+            - { name: GIT_COMMIT,   value: "COMMIT_PLACEHOLDER" }
+            - { name: SECURITY_REPORT_FILE, value: /etc/curasecure/security-summary.json }
+          envFrom:
+            - secretRef: { name: curasecure-secrets }   # JWT_SECRET, DATA_KEY, DEMO_PASSWORD
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            privileged: false
+            capabilities: { drop: ["ALL"] }
+          resources:
+            requests: { cpu: 50m, memory: 96Mi }
+            limits:   { cpu: 500m, memory: 192Mi }
+          readinessProbe:
+            httpGet: { path: /readyz, port: http }
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          volumeMounts:
+            - { name: security-report, mountPath: /etc/curasecure, readOnly: true }
+            - { name: tmp, mountPath: /tmp }
+      volumes:
+        - name: security-report
+          configMap: { name: curasecure-security-report, optional: true }
+        - name: tmp
+          emptyDir: { sizeLimit: 16Mi }

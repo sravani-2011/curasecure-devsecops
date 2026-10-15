@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Audit trail — CuraSecure</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-page="audit" data-auth="required">
+<div class="wrap">
+  <div class="page-head">
+    <h1>Audit trail</h1>
+    <p>Every access to patient data and every security event, newest first. Entries are SHA-256 hash-chained.</p>
+  </div>
+  <div class="alert alert-err hidden" id="aerr"></div>
+  <div class="grid g4 mb-18" id="astats"></div>
+  <div class="table"><table>
+    <thead><tr><th>#</th><th>Time</th><th>User</th><th>Role</th><th>Action</th><th>Target</th><th>Outcome</th><th>Hash</th></tr></thead>
+    <tbody id="arows"></tbody>
+  </table></div>
+</div>
+<script src="/js/common.js"></script>
+<script src="/js/audit.js"></script>
+</body>
+</html>

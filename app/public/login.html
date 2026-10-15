@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sign in — CuraSecure</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-page="login">
+<div class="login-wrap">
+  <div class="card login-card">
+    <h1 class="u-h1sm">Sign in</h1>
+    <p class="lead u-m-4-18">Staff access to the CuraSecure patient portal.</p>
+    <form class="form" id="login-form" autocomplete="off" novalidate>
+      <div><label for="username">Username</label><input id="username" name="username" required maxlength="32" autocomplete="username"></div>
+      <div><label for="password">Password</label><input id="password" name="password" type="password" required maxlength="128" autocomplete="current-password"></div>
+      <div class="alert alert-err hidden" id="err" role="alert"></div>
+      <button class="btn btn-primary" type="submit">Sign in</button>
+    </form>
+    <div class="accounts">
+      <p class="mb-6"><b>Demo accounts</b> (fictional staff):</p>
+      <table><tbody>
+        <tr><td class="mono">dr.mehta</td><td>Doctor: full access</td></tr>
+        <tr><td class="mono">nurse.priya</td><td>Nurse: masked identifiers</td></tr>
+        <tr><td class="mono">admin.rao</td><td>Admin: audit only, no clinical data</td></tr>
+      </tbody></table>
+      <p class="mt-8">The password is not shown here. It is generated per cluster and stored in the Kubernetes Secret <code>curasecure-secrets</code>.</p>
+    </div>
+  </div>
+</div>
+<script src="/js/common.js"></script>
+<script src="/js/login.js"></script>
+</body>
+</html>

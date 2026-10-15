@@ -1,0 +1,10 @@
+# Availability: keep at least one portal pod running during node maintenance
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: curasecure
+  namespace: curasecure
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels: { app: curasecure }

@@ -1,0 +1,45 @@
+# Project-specific SAST rules for a healthcare application (in addition to Semgrep registry rulesets)
+rules:
+  - id: phi-in-console-log
+    languages: [javascript]
+    severity: ERROR
+    message: Possible PHI (patient identifiers / clinical data) written to logs. Log identifiers only.
+    patterns:
+      - pattern-either:
+          - pattern: console.$LOG(..., $X.nationalId, ...)
+          - pattern: console.$LOG(..., $X.diagnosis, ...)
+          - pattern: console.$LOG(..., $X.phone, ...)
+          - pattern: console.$LOG(..., $X.address, ...)
+          - pattern: console.$LOG(..., req.body, ...)
+  - id: jwt-verify-without-algorithms
+    languages: [javascript]
+    severity: ERROR
+    message: jwt.verify() must pin allowed algorithms to prevent algorithm-confusion attacks.
+    patterns:
+      - pattern: jwt.verify($TOKEN, $KEY)
+  - id: insecure-cipher
+    languages: [javascript]
+    severity: ERROR
+    message: Use authenticated encryption (aes-256-gcm) for patient data.
+    pattern-either:
+      - pattern: crypto.createCipheriv("aes-256-cbc", ...)
+      - pattern: crypto.createCipheriv("aes-128-ecb", ...)
+      - pattern: crypto.createCipheriv("des-ede3-cbc", ...)
+      - pattern: crypto.createCipher(...)
+  - id: cookie-without-httponly
+    languages: [javascript]
+    severity: ERROR
+    message: Session cookies must be HttpOnly.
+    pattern: '$RES.cookie($NAME, $VAL, {..., httpOnly: false, ...})'
+  - id: math-random-for-security
+    languages: [javascript]
+    severity: WARNING
+    message: Math.random() is not cryptographically secure; use crypto.randomBytes().
+    pattern: Math.random()
+  - id: eval-usage
+    languages: [javascript]
+    severity: ERROR
+    message: eval()/new Function() enables code injection.
+    pattern-either:
+      - pattern: eval(...)
+      - pattern: new Function(...)

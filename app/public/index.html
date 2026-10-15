@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CuraSecure — DevSecOps Healthcare Portal</title>
+<meta name="description" content="A fictional patient portal demonstrating DevSecOps: security built into every stage of the Jenkins pipeline.">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-page="home">
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <span class="eyebrow">DevSecOps · Healthcare</span>
+      <h1>Patient data protected by design, from commit to cluster.</h1>
+      <p>CuraSecure is a patient portal where security is part of every step of delivery. Each commit is scanned for leaked secrets, insecure code, vulnerable libraries, misconfigured infrastructure and container vulnerabilities, and the running app is attacked with OWASP ZAP. Jenkins blocks any release that fails a security gate.</p>
+      <a class="btn btn-primary" href="/login">Sign in to the portal →</a>
+    </div>
+    <div class="hero-card">
+      <div class="eyebrow mb-6">Pipeline security gates</div>
+      <div class="gate">Secret scanning <b>Gitleaks</b></div>
+      <div class="gate">Static analysis (SAST) <b>Semgrep</b></div>
+      <div class="gate">Dependency scan (SCA) <b>npm audit · Trivy</b></div>
+      <div class="gate">Infrastructure-as-Code scan <b>Trivy config</b></div>
+      <div class="gate">Container image scan + SBOM <b>Trivy</b></div>
+      <div class="gate">Dynamic testing (DAST) <b>OWASP ZAP</b></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="section-head"><h2>Security controls inside the application</h2><p class="lead">The app follows the OWASP Top 10 and healthcare privacy principles (confidentiality, integrity, availability, minimum necessary access).</p></div>
+    <div class="grid g3">
+      <div class="card"><div class="ico">ID</div><h3>Authentication</h3><p>bcrypt-hashed passwords and 30-minute JWT sessions in HttpOnly, SameSite=Strict cookies. Accounts lock after 5 failed attempts, and login is rate-limited.</p></div>
+      <div class="card"><div class="ico">RB</div><h3>Role-based access</h3><p><b>Doctors</b> see full records and write notes. <b>Nurses</b> see clinical data with masked identifiers. <b>Admins</b> see no clinical data, only audit and operations.</p></div>
+      <div class="card"><div class="ico">AE</div><h3>Encryption at rest</h3><p>PHI fields (national ID, phone, address, diagnosis, notes) are stored as AES-256-GCM ciphertext. The key lives in a Kubernetes Secret, never in code.</p></div>
+      <div class="card"><div class="ico">AU</div><h3>Tamper-evident audit</h3><p>Every record view, change, denied access and login is logged in a SHA-256 hash chain, so altering past entries is detectable.</p></div>
+      <div class="card"><div class="ico">IV</div><h3>Input validation</h3><p>Strict allow-list validation, 10 KB request limit, output escaping, and no stack traces leaked to clients.</p></div>
+      <div class="card"><div class="ico">HD</div><h3>Security headers</h3><p>Strict Content-Security-Policy (no inline scripts, no third-party content), frame-ancestors none, no-referrer, Permissions-Policy, and CSRF origin checks.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="u-band">
+  <div class="wrap">
+    <div class="section-head"><h2>Hardened platform</h2><p class="lead">The platform is locked down too, not just the code.</p></div>
+    <div class="grid g4">
+      <div class="card"><h3>Non-root, read-only container</h3><p>Runs as UID 1000 with a read-only root filesystem, all Linux capabilities dropped and no privilege escalation.</p></div>
+      <div class="card"><h3>Pod Security "restricted"</h3><p>The namespace enforces the strictest Kubernetes Pod Security Standard, with a RuntimeDefault seccomp profile.</p></div>
+      <div class="card"><h3>Network policies</h3><p>Default-deny ingress and egress. The pods may only receive traffic on port 3000 and cannot call out.</p></div>
+      <div class="card"><h3>Secrets management</h3><p>Encryption key, JWT key and demo password are generated per cluster and stored in a Kubernetes Secret, and they never appear in logs.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="section-head"><h2>Mapped to healthcare safeguards</h2><p class="lead">How the implementation lines up with typical health-data security requirements (HIPAA Security Rule style technical safeguards).</p></div>
+    <div class="table"><table>
+      <thead><tr><th>Safeguard</th><th>Implementation</th></tr></thead>
+      <tbody>
+        <tr><td>Access control</td><td>Unique user IDs, RBAC, automatic session timeout, account lockout</td></tr>
+        <tr><td>Audit controls</td><td>Hash-chained audit trail of all PHI access, admin-only viewer</td></tr>
+        <tr><td>Integrity</td><td>AES-GCM authenticated encryption, signed sessions, image built from scanned source</td></tr>
+        <tr><td>Person/entity authentication</td><td>bcrypt password verification, JWT signature + issuer + algorithm pinning</td></tr>
+        <tr><td>Transmission security</td><td>Secure cookies + HSTS enabled when served over TLS (<code>COOKIE_SECURE=true</code>)</td></tr>
+        <tr><td>Risk analysis &amp; management</td><td>Automated SAST/SCA/IaC/image/DAST scanning on every build, with results in the Security Center</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+<script src="/js/common.js"></script>
+</body>
+</html>

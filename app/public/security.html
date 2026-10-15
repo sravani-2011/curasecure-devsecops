@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Security Center — CuraSecure</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-page="security" data-auth="required">
+<div class="wrap">
+  <div class="page-head">
+    <h1>Security Center</h1>
+    <p>Results of the DevSecOps pipeline for the build that is running right now, published by Jenkins after every deployment.</p>
+  </div>
+  <div class="alert alert-info hidden" id="none">No security report has been published yet. Run the Jenkins pipeline.</div>
+
+  <div id="report" class="hidden">
+    <div class="card mb-18">
+      <div class="score">
+        <div><p class="lead">Release gate</p><div class="big" id="verdict">—</div></div>
+        <dl class="kv u-flex1" id="meta"></dl>
+      </div>
+    </div>
+    <div class="table mb-18"><table>
+      <thead><tr><th>Stage</th><th>Tool</th><th>Gate policy</th><th>Findings</th><th>Result</th></tr></thead>
+      <tbody id="gates"></tbody>
+    </table></div>
+    <h2>Top findings</h2>
+    <p class="lead mb-10">The highest-severity items reported across all scanners. Full reports are archived as Jenkins build artifacts.</p>
+    <div class="table"><table>
+      <thead><tr><th>Severity</th><th>Scanner</th><th>ID</th><th>Title</th><th>Location</th></tr></thead>
+      <tbody id="findings"></tbody>
+    </table></div>
+  </div>
+</div>
+<script src="/js/common.js"></script>
+<script src="/js/security.js"></script>
+</body>
+</html>

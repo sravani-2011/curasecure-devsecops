@@ -1,0 +1,25 @@
+# Zero-trust networking: deny everything, then allow only what the portal needs.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: curasecure
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+# Allow inbound HTTP to the portal pods only (via the Service / NodePort)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-portal-http
+  namespace: curasecure
+spec:
+  podSelector:
+    matchLabels: { app: curasecure }
+  policyTypes: [Ingress]
+  ingress:
+    - ports:
+        - { protocol: TCP, port: 3000 }
+# No egress rule: the portal never needs to make outbound connections,
+# so a compromised pod cannot exfiltrate data or reach other services.

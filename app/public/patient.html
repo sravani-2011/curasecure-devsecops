@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Patient record — CuraSecure</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-page="dashboard" data-auth="required">
+<div class="wrap">
+  <div class="page-head">
+    <a href="/dashboard">← All patients</a>
+    <h1 class="mt-8" id="pname">Patient record</h1>
+    <p id="pmeta"></p>
+  </div>
+  <div class="alert alert-err hidden" id="perr"></div>
+
+  <div class="two" id="body">
+    <div class="card"><h3>Demographics &amp; identifiers</h3><dl class="kv" id="demo"></dl></div>
+    <div class="card"><h3>Clinical summary</h3><dl class="kv" id="clin"></dl></div>
+  </div>
+
+  <section class="u-sec" id="vitals-sec">
+    <h2>Vitals</h2>
+    <div class="table mt-10"><table>
+      <thead><tr><th>Recorded</th><th>By</th><th>HR</th><th>BP</th><th>Temp °C</th><th>SpO₂</th></tr></thead>
+      <tbody id="vitals"></tbody></table></div>
+    <form class="card form hidden mt-14" id="vitals-form" novalidate>
+      <h3 class="m-0">Record new vitals</h3>
+      <div class="row">
+        <div><label for="heartRate">Heart rate</label><input id="heartRate" name="heartRate" type="number" min="20" max="250" required></div>
+        <div><label for="systolic">Systolic</label><input id="systolic" name="systolic" type="number" min="50" max="260" required></div>
+        <div><label for="diastolic">Diastolic</label><input id="diastolic" name="diastolic" type="number" min="30" max="160" required></div>
+        <div><label for="temperature">Temp °C</label><input id="temperature" name="temperature" type="number" step="0.1" min="30" max="45" required></div>
+        <div><label for="spo2">SpO₂ %</label><input id="spo2" name="spo2" type="number" min="50" max="100" required></div>
+      </div>
+      <div class="alert hidden" id="vmsg"></div>
+      <button class="btn btn-primary" type="submit">Save vitals</button>
+    </form>
+  </section>
+
+  <section class="u-sec" id="notes-sec">
+    <h2>Physician notes</h2>
+    <p class="lead" id="notes-hint"></p>
+    <div class="mt-10" id="notes"></div>
+    <form class="card form hidden mt-14" id="note-form" novalidate>
+      <label for="note-text">New clinical note (stored encrypted)</label>
+      <textarea id="note-text" rows="4" maxlength="2000" required></textarea>
+      <div class="alert hidden" id="nmsg"></div>
+      <button class="btn btn-primary" type="submit">Add note</button>
+    </form>
+  </section>
+
+  <section class="hidden u-sec" id="raw-sec">
+    <h2>Encrypted at rest</h2>
+    <p class="lead">As an administrator you cannot read clinical data. This is exactly how the sensitive fields are stored: AES-256-GCM ciphertext.</p>
+    <pre class="cipher" id="raw"></pre>
+  </section>
+</div>
+<script src="/js/common.js"></script>
+<script src="/js/patient.js"></script>
+</body>
+</html>
