@@ -1,0 +1,239 @@
+<title>CuraSecure DevSecOps Dashboard</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a release console. Summary strip -> pipeline track (12 stages) -> findings + live system -> per-gate ledger. */
+:root{
+  --bg:#f3f5f6; --panel:#ffffff; --ink:#15222a; --muted:#5b6b74; --line:#dde3e6; --soft:#eef2f3;
+  --accent:#0d6b73; --accent-soft:#d7ecee;
+  --pass:#1f7a45; --pass-soft:#dcf0e3; --warn:#9a6200; --warn-soft:#f8ead0; --fail:#b42318; --fail-soft:#fbe0dc; --skip:#7a868c; --skip-soft:#e7ebed;
+  --crit:#6b2fa3; --high:#c0392b; --med:#d9822b; --low:#3f8f5a; --info:#8a979e;
+  --display:"IBM Plex Sans Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f171b; --panel:#162228; --ink:#e3ebee; --muted:#93a4ac; --line:#26353c; --soft:#1c2b31;
+  --accent:#4fb3bb; --accent-soft:#16383c;
+  --pass:#5cc98a; --pass-soft:#163626; --warn:#e3a94a; --warn-soft:#3a2c12; --fail:#f07a6c; --fail-soft:#40201c; --skip:#8d9aa0; --skip-soft:#232f34;
+  --crit:#b48ae0; --high:#ef6f5f; --med:#eda25a; --low:#6cc28a; --info:#7d8b92; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f171b; --panel:#162228; --ink:#e3ebee; --muted:#93a4ac; --line:#26353c; --soft:#1c2b31;
+  --accent:#4fb3bb; --accent-soft:#16383c;
+  --pass:#5cc98a; --pass-soft:#163626; --warn:#e3a94a; --warn-soft:#3a2c12; --fail:#f07a6c; --fail-soft:#40201c; --skip:#8d9aa0; --skip-soft:#232f34;
+  --crit:#b48ae0; --high:#ef6f5f; --med:#eda25a; --low:#6cc28a; --info:#7d8b92; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--body);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 48px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:22px}
+h1,h2{font-family:var(--display);font-weight:600;text-wrap:balance;margin:0;letter-spacing:.01em}
+h1{font-size:clamp(1.6rem,3.4vw,2.25rem);line-height:1.1}
+h2{font-size:1.05rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:500}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.eyebrow{font:500 .75rem/1 var(--mono);text-transform:uppercase;letter-spacing:.12em;color:var(--accent)}
+a{color:var(--accent)} a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+header{display:flex;flex-wrap:wrap;gap:16px 28px;align-items:flex-end;justify-content:space-between}
+header .lede{color:var(--muted);max-width:62ch;margin:.4rem 0 0}
+.links{display:flex;flex-wrap:wrap;gap:8px}
+.links a{font:500 .8rem var(--mono);text-decoration:none;border:1px solid var(--line);background:var(--panel);padding:6px 10px;border-radius:6px}
+.links a:hover{border-color:var(--accent)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 20px;min-width:0}
+.panel-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.note{color:var(--muted);font-size:.8rem}
+/* verdict strip */
+.verdict{display:grid;grid-template-columns:minmax(220px,1.3fr) repeat(4,minmax(120px,1fr));gap:0;padding:0;overflow:hidden}
+.verdict>div{padding:16px 20px;border-left:1px solid var(--line);min-width:0}
+.verdict>div:first-child{border-left:0}
+.big{font:600 1.9rem/1.1 var(--display);font-variant-numeric:tabular-nums}
+.lbl{font:500 .72rem/1.2 var(--mono);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+.sub{color:var(--muted);font-size:.8rem;margin-top:2px}
+.result{display:flex;flex-direction:column;justify-content:center;gap:6px}
+.result.ok{background:var(--pass-soft)} .result.bad{background:var(--fail-soft)} .result.none{background:var(--soft)}
+.result .big{font-size:1.6rem}
+.result.ok .big{color:var(--pass)} .result.bad .big{color:var(--fail)}
+@media (max-width:820px){.verdict{grid-template-columns:repeat(2,1fr)}.verdict>div{border-left:0;border-top:1px solid var(--line)}.verdict>div:first-child{grid-column:1/-1;border-top:0}}
+/* pipeline track */
+.track{display:grid;grid-template-columns:repeat(12,minmax(78px,1fr));gap:6px;overflow-x:auto;padding-bottom:4px}
+.stage{position:relative;border:1px solid var(--line);border-radius:8px;padding:10px 10px 9px;background:var(--soft);min-height:96px;display:flex;flex-direction:column;gap:4px}
+.stage .n{font:500 .7rem var(--mono);color:var(--muted)}
+.stage .t{font:600 .86rem/1.15 var(--display)}
+.stage .tool{font:.68rem/1.2 var(--mono);color:var(--muted);margin-top:auto}
+.stage .chip{align-self:flex-start}
+.stage.gate{background:var(--panel);border-top:3px solid var(--skip)}
+.stage.pass{border-top-color:var(--pass)} .stage.warn{border-top-color:var(--warn)} .stage.fail{border-top-color:var(--fail)}
+.chip{display:inline-flex;align-items:center;gap:5px;font:600 .66rem/1 var(--mono);text-transform:uppercase;letter-spacing:.08em;padding:4px 7px;border-radius:999px;white-space:nowrap}
+.chip::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.chip.pass{color:var(--pass);background:var(--pass-soft)} .chip.warn{color:var(--warn);background:var(--warn-soft)}
+.chip.fail{color:var(--fail);background:var(--fail-soft)} .chip.skipped,.chip.none{color:var(--skip);background:var(--skip-soft)}
+.chip.ok{color:var(--pass);background:var(--pass-soft)} .chip.down{color:var(--fail);background:var(--fail-soft)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.78rem;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+/* two-up */
+.two{display:grid;grid-template-columns:1.25fr 1fr;gap:22px}
+@media (max-width:900px){.two{grid-template-columns:1fr}}
+.bars{display:grid;gap:9px}
+.bar-row{display:grid;grid-template-columns:150px 1fr 44px;gap:12px;align-items:center}
+.bar-row .name{font-size:.84rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar{height:16px;border-radius:3px;background:var(--soft);display:flex;overflow:hidden}
+.bar span{height:100%}
+.bar-row .v{text-align:right;font:500 .82rem var(--mono)}
+@media (max-width:480px){.bar-row{grid-template-columns:96px 1fr 36px}}
+.kv{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.kv>div{background:var(--soft);border-radius:8px;padding:12px 14px;min-width:0}
+.kv .big{font-size:1.45rem}
+.meter{height:6px;border-radius:3px;background:var(--line);margin-top:8px;overflow:hidden}
+.meter span{display:block;height:100%;background:var(--accent)}
+.meter span.hot{background:var(--warn)} .meter span.over{background:var(--fail)}
+/* ledger */
+.tbl{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.86rem;min-width:760px}
+th{font:500 .7rem var(--mono);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+th.num{text-align:right}
+td .pol{color:var(--muted);font-size:.78rem}
+td.top{font-family:var(--mono);font-size:.76rem;color:var(--muted);max-width:280px}
+tr:last-child td{border-bottom:0}
+.z{color:var(--line)}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px 22px;font-size:.84rem;color:var(--muted);margin:0;padding:0;list-style:none}
+.controls b{color:var(--ink);font-weight:600}
+footer{color:var(--muted);font-size:.78rem;display:flex;flex-wrap:wrap;gap:6px 18px}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">Secure DevOps · Healthcare portal · AWS Academy lab</div>
+      <h1>CuraSecure release pipeline</h1>
+      <p class="lede">Every commit passes 8 security gates in Jenkins before it reaches the hardened k3s cluster on EC2. A failed gate stops the release; a High-risk DAST alert rolls it back. Patient data is synthetic.</p>
+    </div>
+    <nav class="links" id="links"></nav>
+  </header>
+
+  <section class="panel verdict" id="verdict" aria-label="Latest release"></section>
+
+  <section class="panel" aria-labelledby="h-track">
+    <div class="panel-head"><h2 id="h-track">Pipeline · latest build</h2>
+      <div class="legend"><span><i style="background:var(--pass)"></i>Pass</span><span><i style="background:var(--warn)"></i>Warn (findings, not blocking)</span><span><i style="background:var(--fail)"></i>Blocked</span><span><i style="background:var(--skip)"></i>Not reached</span></div></div>
+    <div class="track" id="track"></div>
+  </section>
+
+  <div class="two">
+    <section class="panel" aria-labelledby="h-find">
+      <div class="panel-head"><h2 id="h-find">Findings by gate</h2><span class="note" id="find-total"></span></div>
+      <div class="bars" id="bars"></div>
+      <div class="legend" style="margin-top:14px"><span><i style="background:var(--crit)"></i>Critical</span><span><i style="background:var(--high)"></i>High</span><span><i style="background:var(--med)"></i>Medium</span><span><i style="background:var(--low)"></i>Low</span><span><i style="background:var(--info)"></i>Info</span></div>
+    </section>
+    <section class="panel" aria-labelledby="h-live">
+      <div class="panel-head"><h2 id="h-live">Live system</h2><span class="note" id="live-at"></span></div>
+      <div class="kv" id="live"></div>
+    </section>
+  </div>
+
+  <section class="panel" aria-labelledby="h-ledger">
+    <div class="panel-head"><h2 id="h-ledger">Gate ledger</h2><span class="note">Policy applied by scripts/secgate.py</span></div>
+    <div class="tbl"><table>
+      <thead><tr><th>Gate</th><th>Tool</th><th>Status</th><th class="num">Crit</th><th class="num">High</th><th class="num">Med</th><th class="num">Low</th><th>Top finding</th></tr></thead>
+      <tbody id="ledger"></tbody>
+    </table></div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-ctl">
+    <div class="panel-head"><h2 id="h-ctl">Controls in force</h2></div>
+    <ul class="controls">
+      <li><b>Auth</b> · bcrypt, JWT HS256 in HttpOnly SameSite=Strict cookie, lockout after 5 failures</li>
+      <li><b>RBAC</b> · doctor full, nurse masked IDs, admin audit-only</li>
+      <li><b>Encryption</b> · AES-256-GCM per PHI field, key from Kubernetes Secret</li>
+      <li><b>Audit</b> · SHA-256 hash-chained trail, no PHI in logs</li>
+      <li><b>Pod</b> · PSA restricted, UID 10001, read-only root FS, all capabilities dropped</li>
+      <li><b>Network</b> · default-deny policy, ingress 3000 only, no egress</li>
+      <li><b>Host</b> · encrypted EBS, IMDSv2 required</li>
+      <li><b>Supply chain</b> · pinned scanner images, CycloneDX SBOM per build</li>
+    </ul>
+  </section>
+
+  <footer id="foot"></footer>
+</div>
+
+<script>
+/* Snapshot read from AWS account 9743-5669-4038 (us-east-1): CloudWatch namespace CuraSecure/DevSecOps,
+   log groups /curasecure/pipeline and /curasecure/ec2, CWAgent and AWS/EC2 metrics. */
+const DATA = {
+  snapshotAt: null,
+  host: { id: "i-0f9cf5cccdb8eb5a3", ip: "54.91.237.178", region: "us-east-1", type: "t3.large" },
+  build: null,           // {build, commit, result, durationSec, sbomComponents, image}
+  gates: {},             // key -> {status, critical, high, medium, low, info, top}
+  tests: null,           // {passed, failed}
+  live: { portalUp: null, latencyMs: null, readyPods: null, cpu: null, mem: null, disk: null }
+};
+
+const STAGES = [
+  ["Checkout","git",null],["Secret scan","Gitleaks","secrets"],["SAST","Semgrep","sast"],["SCA","Trivy fs","sca"],
+  ["IaC scan","Trivy config","iac"],["Tests + audit","node:test · npm","tests"],["Build image","Docker",null],
+  ["Image scan + SBOM","Trivy image","image"],["Push","Docker Hub",null],["Deploy","kubectl → k3s",null],
+  ["DAST","OWASP ZAP","dast"],["Publish report","secgate.py",null]];
+const GATES = [
+  ["secrets","Secret scanning","Gitleaks","Block on any secret"],["sast","Static analysis (SAST)","Semgrep","Block on ERROR"],
+  ["sca","Dependency scan (SCA)","Trivy fs","Block on fixable HIGH/CRITICAL"],["iac","Infrastructure as Code","Trivy config","Block on HIGH/CRITICAL"],
+  ["tests","Unit & security tests","node:test","Block on any failure"],["npm","Dependency audit","npm audit","Block on critical"],
+  ["image","Container image","Trivy image","Block on fixable CRITICAL"],["dast","Dynamic scan (DAST)","OWASP ZAP","Block + rollback on High"]];
+const SEV = ["critical","high","medium","low","info"], SEVVAR = {critical:"--crit",high:"--high",medium:"--med",low:"--low",info:"--info"};
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt = (v, d = 0) => v == null ? "—" : Number(v).toLocaleString(undefined, {maximumFractionDigits: d});
+const statusOf = k => (DATA.gates[k] || {}).status || (DATA.build ? "skipped" : "none");
+const label = s => ({pass:"Pass",warn:"Warn",fail:"Blocked",skipped:"Not reached",none:"No data"}[s] || s);
+
+function render(){
+  const h = DATA.host, b = DATA.build;
+  const cw = `https://${h.region}.console.aws.amazon.com/cloudwatch/home?region=${h.region}#dashboards/dashboard/CuraSecure-DevSecOps`;
+  $("links").innerHTML = [["CloudWatch dashboard",cw],["Jenkins",`http://${h.ip}:8080`],["Portal",`http://${h.ip}:30080`],["Security Center",`http://${h.ip}:30080/security.html`]]
+    .map(([t,u]) => `<a href="${u}" target="_blank" rel="noopener">${t} ↗</a>`).join("");
+
+  const failed = GATES.filter(([k]) => statusOf(k) === "fail").length;
+  const totals = SEV.reduce((a,s) => (a[s] = GATES.reduce((n,[k]) => n + ((DATA.gates[k]||{})[s]||0), 0), a), {});
+  const total = SEV.reduce((n,s) => n + totals[s], 0);
+  const ok = b && b.result === "SUCCESS";
+  $("verdict").innerHTML = `
+    <div class="result ${b ? (ok ? "ok" : "bad") : "none"}"><div class="lbl">Latest release</div>
+      <div class="big">${b ? (ok ? "Released" : "Blocked") : "Awaiting first build"}</div>
+      <div class="sub mono">${b ? `build #${esc(b.build)} · ${esc(b.commit)}` : "Jenkins publishes after its next run"}</div></div>
+    <div><div class="lbl">Gates blocked</div><div class="big">${b ? failed : "—"}<span class="sub"> / 8</span></div></div>
+    <div><div class="lbl">Open findings</div><div class="big">${b ? fmt(total) : "—"}</div><div class="sub">${b ? `${totals.critical} critical · ${totals.high} high` : ""}</div></div>
+    <div><div class="lbl">Tests</div><div class="big">${DATA.tests ? fmt(DATA.tests.passed) : "—"}</div><div class="sub">${DATA.tests ? `${DATA.tests.failed} failing` : "passed"}</div></div>
+    <div><div class="lbl">Build time</div><div class="big">${b && b.durationSec ? fmt(b.durationSec/60,1) : "—"}<span class="sub"> min</span></div><div class="sub">${b && b.sbomComponents ? fmt(b.sbomComponents)+" SBOM components" : ""}</div></div>`;
+
+  $("track").innerHTML = STAGES.map(([t,tool,k],i) => {
+    const s = k ? statusOf(k) : "";
+    return `<div class="stage ${k ? "gate "+s : ""}"><span class="n mono">${String(i+1).padStart(2,"0")}</span><span class="t">${t}</span>
+      ${k ? `<span class="chip ${s}">${label(s)}</span>` : ""}<span class="tool">${tool}</span></div>`;}).join("");
+
+  const max = Math.max(1, ...GATES.map(([k]) => SEV.reduce((n,s) => n + ((DATA.gates[k]||{})[s]||0), 0)));
+  $("bars").innerHTML = GATES.map(([k,name]) => {
+    const g = DATA.gates[k] || {}, n = SEV.reduce((a,s) => a + (g[s]||0), 0);
+    return `<div class="bar-row"><span class="name">${name}</span><div class="bar" role="img" aria-label="${name}: ${n} findings">
+      ${SEV.map(s => g[s] ? `<span style="width:${g[s]/max*100}%;background:var(${SEVVAR[s]})" title="${g[s]} ${s}"></span>` : "").join("")}</div>
+      <span class="v ${n ? "" : "z"}">${n}</span></div>`;}).join("");
+  $("find-total").textContent = b ? `${fmt(total)} total, build #${b.build}` : "No build published yet";
+
+  const L = DATA.live, pct = v => v == null ? "" : `<div class="meter"><span class="${v>90?"over":v>75?"hot":""}" style="width:${Math.min(100,v)}%"></span></div>`;
+  $("live").innerHTML = `
+    <div><div class="lbl">Portal /healthz</div><div class="big">${L.portalUp == null ? "—" : `<span class="chip ${L.portalUp ? "ok" : "down"}">${L.portalUp ? "Up" : "Down"}</span>`}</div><div class="sub mono">${L.latencyMs == null ? "1-min probe" : fmt(L.latencyMs)+" ms"}</div></div>
+    <div><div class="lbl">Ready pods</div><div class="big">${fmt(L.readyPods)}</div><div class="sub">namespace curasecure</div></div>
+    <div><div class="lbl">CPU</div><div class="big">${L.cpu == null ? "—" : fmt(L.cpu,1)+"%"}</div>${pct(L.cpu)}</div>
+    <div><div class="lbl">Memory</div><div class="big">${L.mem == null ? "—" : fmt(L.mem,1)+"%"}</div>${pct(L.mem)}</div>
+    <div><div class="lbl">Disk /</div><div class="big">${L.disk == null ? "—" : fmt(L.disk,1)+"%"}</div>${pct(L.disk)}</div>
+    <div><div class="lbl">Host</div><div class="big" style="font-size:1rem;line-height:1.4">${esc(h.type)}</div><div class="sub mono">${esc(h.id)}</div></div>`;
+  $("live-at").textContent = `EC2 · ${h.region}`;
+
+  $("ledger").innerHTML = GATES.map(([k,name,tool,pol]) => {
+    const g = DATA.gates[k] || {}, s = statusOf(k), c = v => `<td class="num ${v ? "" : "z"}">${v ?? "—"}</td>`;
+    return `<tr><td><b>${name}</b><div class="pol">${pol}</div></td><td class="mono">${tool}</td><td><span class="chip ${s}">${label(s)}</span></td>
+      ${c(g.critical)}${c(g.high)}${c(g.medium)}${c(g.low)}<td class="top">${esc(g.top) || "—"}</td></tr>`;}).join("");
+
+  $("foot").innerHTML = `<span>Snapshot ${DATA.snapshotAt ? esc(DATA.snapshotAt) : "pending"} · AWS account 9743-5669-4038</span>
+    <span>Source: CloudWatch CuraSecure/DevSecOps, /curasecure/pipeline, CWAgent, AWS/EC2</span>
+    <span>Live view: the CloudWatch dashboard link above refreshes automatically</span>`;
+}
+render();
+</script>
