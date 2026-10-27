@@ -9,7 +9,7 @@
    "width": 24,
    "height": 3,
    "properties": {
-    "markdown": "# CuraSecure \u2014 DevSecOps Healthcare Pipeline\nGitHub \u2192 **Jenkins (12 stages, 8 security gates)** \u2192 Docker Hub \u2192 **k3s (hardened)** \u2192 OWASP ZAP \u00b7 single EC2 host \u00b7 synthetic patient data only. Gate status: **0 = pass \u00b7 1 = warn \u00b7 2 = BLOCKED**. [Jenkins](http://EC2_PUBLIC_IP:8080) \u00b7 [Portal](http://EC2_PUBLIC_IP:30080) \u00b7 [Security Center](http://EC2_PUBLIC_IP:30080/security.html)"
+    "markdown": "# CuraSecure \u2014 DevSecOps Healthcare Pipeline\nGitHub \u2192 **Jenkins (12 stages, 8 security gates)** \u2192 Docker Hub \u2192 **k3s (hardened)** \u2192 OWASP ZAP \u00b7 single EC2 host \u00b7 synthetic patient data only. Gate status: **0 = pass \u00b7 1 = warn \u00b7 2 = BLOCKED**. [Jenkins](http://EC2_PUBLIC_IP:8080) \u00b7 [Portal](http://EC2_PUBLIC_IP:30081) \u00b7 [Security Center](http://EC2_PUBLIC_IP:30081/security.html)"
    }
   },
   {

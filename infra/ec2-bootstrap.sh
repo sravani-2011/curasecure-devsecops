@@ -56,4 +56,4 @@ for IMG in aquasec/trivy:0.75.0 zricethezav/gitleaks:v8.30.0 semgrep/semgrep:1.1
 done
 
 date > /var/log/bootstrap.done
-echo "Bootstrap complete. Jenkins: http://<public-ip>:8080  Portal: http://<public-ip>:30080"
+echo "Bootstrap complete. Jenkins: http://<public-ip>:8080  Portal: http://<public-ip>:30081"

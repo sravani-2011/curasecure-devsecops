@@ -36,12 +36,12 @@ no privilege escalation · seccomp RuntimeDefault · no service-account token ·
 EC2: encrypted EBS volume, IMDSv2 required.
 
 ## Setup
-1. EC2 (Ubuntu 24.04, t3.large, 30 GB encrypted) with `infra/ec2-bootstrap.sh` as user data; SG ports 22, 8080, 30080.
+1. EC2 (Ubuntu 24.04, t3.large, 30 GB encrypted) with `infra/ec2-bootstrap.sh` as user data; SG ports 22, 8080, 30081.
 2. Push this folder's **contents** to a GitHub repo (top level must show `Jenkinsfile`, `app/`, `k8s/` …).
 3. Jenkins: unlock, install suggested plugins, add credential `dockerhub-creds` (Docker Hub user + access token).
 4. Pipeline job from SCM → `Jenkinsfile` → **Build Now**.
 5. Demo password: `kubectl -n curasecure get secret curasecure-secrets -o jsonpath='{.data.DEMO_PASSWORD}' | base64 -d; echo`
-6. Portal: `http://<EC2_IP>:30080` → sign in as `dr.mehta`, `nurse.priya` or `admin.rao`.
+6. Portal: `http://<EC2_IP>:30081` → sign in as `dr.mehta`, `nurse.priya` or `admin.rao`.
 
 ## Demo: watch a gate block a release
 Add `const key = Math.random(); eval(req.query.x);` to `app/src/app.js` and push. The **SAST** gate fails

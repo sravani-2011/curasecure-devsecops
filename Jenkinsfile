@@ -21,7 +21,7 @@ pipeline {
     environment {
         APP        = 'curasecure'
         NS         = 'curasecure'
-        PORT       = '30080'
+        PORT       = '30081'
         KUBECONFIG = '/var/lib/jenkins/.kube/config'
         DOCKER_HUB = credentials('dockerhub-creds')
         // Pinned scanner versions (reproducible, auditable tooling)

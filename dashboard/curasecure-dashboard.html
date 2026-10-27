@@ -187,7 +187,7 @@ const label = s => ({pass:"Pass",warn:"Warn",fail:"Blocked",skipped:"Not reached
 function render(){
   const h = DATA.host, b = DATA.build;
   const cw = `https://${h.region}.console.aws.amazon.com/cloudwatch/home?region=${h.region}#dashboards/dashboard/CuraSecure-DevSecOps`;
-  $("links").innerHTML = [["CloudWatch dashboard",cw],["Jenkins",`http://${h.ip}:8080`],["Portal",`http://${h.ip}:30080`],["Security Center",`http://${h.ip}:30080/security.html`]]
+  $("links").innerHTML = [["CloudWatch dashboard",cw],["Jenkins",`http://${h.ip}:8080`],["Portal",`http://${h.ip}:30081`],["Security Center",`http://${h.ip}:30081/security.html`]]
     .map(([t,u]) => `<a href="${u}" target="_blank" rel="noopener">${t} ↗</a>`).join("");
 
   const failed = GATES.filter(([k]) => statusOf(k) === "fail").length;

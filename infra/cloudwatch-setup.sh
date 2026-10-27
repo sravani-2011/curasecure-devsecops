@@ -66,7 +66,7 @@ cat > /usr/local/bin/curasecure-health.sh <<'SH'
 # Publishes PortalUp (1/0), PortalLatencyMs and ReadyPods to CuraSecure/DevSecOps
 . /etc/default/curasecure-aws
 export AWS_DEFAULT_REGION
-OUT=$(curl -s -o /dev/null -w '%{http_code} %{time_total}' --max-time 5 http://localhost:30080/healthz)
+OUT=$(curl -s -o /dev/null -w '%{http_code} %{time_total}' --max-time 5 http://localhost:30081/healthz)
 CODE=${OUT%% *}; SECS=${OUT##* }
 UP=0; [ "$CODE" = "200" ] && UP=1
 MS=$(awk -v s="$SECS" 'BEGIN{printf "%.0f", s*1000}')
