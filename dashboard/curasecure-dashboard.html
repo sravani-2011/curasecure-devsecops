@@ -97,6 +97,10 @@ tr:last-child td{border-bottom:0}
 .z{color:var(--line)}
 .controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px 22px;font-size:.84rem;color:var(--muted);margin:0;padding:0;list-style:none}
 .controls b{color:var(--ink);font-weight:600}
+.hist{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.hist li{display:grid;grid-template-columns:92px 110px 1fr;gap:12px;align-items:baseline;padding:10px 12px;background:var(--soft);border-radius:8px}
+@media (max-width:600px){.hist li{grid-template-columns:1fr}}
+.hist .d{font-size:.86rem}
 footer{color:var(--muted);font-size:.78rem;display:flex;flex-wrap:wrap;gap:6px 18px}
 </style>
 
@@ -138,6 +142,11 @@ footer{color:var(--muted);font-size:.78rem;display:flex;flex-wrap:wrap;gap:6px 1
     </table></div>
   </section>
 
+  <section class="panel" aria-labelledby="h-hist">
+    <div class="panel-head"><h2 id="h-hist">Release history · today</h2><span class="note">The gates catching real problems, then the fix</span></div>
+    <ol class="hist" id="hist"></ol>
+  </section>
+
   <section class="panel" aria-labelledby="h-ctl">
     <div class="panel-head"><h2 id="h-ctl">Controls in force</h2></div>
     <ul class="controls">
@@ -159,12 +168,123 @@ footer{color:var(--muted);font-size:.78rem;display:flex;flex-wrap:wrap;gap:6px 1
 /* Snapshot read from AWS account 9743-5669-4038 (us-east-1): CloudWatch namespace CuraSecure/DevSecOps,
    log groups /curasecure/pipeline and /curasecure/ec2, CWAgent and AWS/EC2 metrics. */
 const DATA = {
-  snapshotAt: null,
-  host: { id: "i-0f9cf5cccdb8eb5a3", ip: "54.91.237.178", region: "us-east-1", type: "t3.large" },
-  build: null,           // {build, commit, result, durationSec, sbomComponents, image}
-  gates: {},             // key -> {status, critical, high, medium, low, info, top}
-  tests: null,           // {passed, failed}
-  live: { portalUp: null, latencyMs: null, readyPods: null, cpu: null, mem: null, disk: null }
+ "snapshotAt": "27 Oct 2026, 08:44 UTC (Jenkins build #3)",
+ "host": {
+  "id": "i-0f9cf5cccdb8eb5a3",
+  "ip": "54.91.237.178",
+  "region": "us-east-1",
+  "type": "t3.large"
+ },
+ "build": {
+  "build": 3,
+  "commit": "89ab574",
+  "result": "SUCCESS",
+  "durationSec": 160,
+  "sbomComponents": 106,
+  "image": "sravs2011/curasecure:3-89ab574"
+ },
+ "gates": {
+  "secrets": {
+   "status": "pass",
+   "critical": 0,
+   "high": 0,
+   "medium": 0,
+   "low": 0,
+   "info": 0
+  },
+  "sast": {
+   "status": "pass",
+   "critical": 0,
+   "high": 0,
+   "medium": 0,
+   "low": 0,
+   "info": 0
+  },
+  "sca": {
+   "status": "pass",
+   "critical": 0,
+   "high": 0,
+   "medium": 0,
+   "low": 0,
+   "info": 0
+  },
+  "iac": {
+   "status": "pass",
+   "critical": 0,
+   "high": 0,
+   "medium": 0,
+   "low": 0,
+   "info": 0
+  },
+  "tests": {
+   "status": "pass",
+   "critical": 0,
+   "high": 0,
+   "medium": 0,
+   "low": 0,
+   "info": 0
+  },
+  "npm": {
+   "status": "pass",
+   "critical": 0,
+   "high": 0,
+   "medium": 0,
+   "low": 0,
+   "info": 0
+  },
+  "image": {
+   "status": "pass",
+   "critical": 0,
+   "high": 0,
+   "medium": 0,
+   "low": 0,
+   "info": 0
+  },
+  "dast": {
+   "status": "pass",
+   "critical": 0,
+   "high": 0,
+   "medium": 0,
+   "low": 0,
+   "info": 4,
+   "top": "4 informational ZAP alerts (e.g. ZAP-10111 Authentication Request Identified)"
+  }
+ },
+ "tests": {
+  "passed": 15,
+  "failed": 0
+ },
+ "live": {
+  "portalUp": null,
+  "latencyMs": null,
+  "readyPods": null,
+  "cpu": null,
+  "mem": null,
+  "disk": null
+ },
+ "history": [
+  {
+   "build": 3,
+   "commit": "89ab574",
+   "result": "Released",
+   "detail": "All 8 gates passed \u00b7 deployed to k3s \u00b7 DAST clean (4 info) \u00b7 106-component SBOM",
+   "t": "08:44"
+  },
+  {
+   "build": 2,
+   "commit": "9dfedb6",
+   "result": "Failed",
+   "detail": "7/7 gates passed; deploy stopped: NodePort 30080 already in use on the cluster \u2192 moved portal to 30081",
+   "t": "08:41"
+  },
+  {
+   "build": 1,
+   "commit": "120836e",
+   "result": "Blocked",
+   "detail": "SCA gate blocked: CVE-2026-111181 (HIGH) in body-parser 1.20.8 \u2192 upgraded to 1.20.9",
+   "t": "08:37"
+  }
+ ]
 };
 
 const STAGES = [
@@ -224,7 +344,7 @@ function render(){
     <div><div class="lbl">Memory</div><div class="big">${L.mem == null ? "—" : fmt(L.mem,1)+"%"}</div>${pct(L.mem)}</div>
     <div><div class="lbl">Disk /</div><div class="big">${L.disk == null ? "—" : fmt(L.disk,1)+"%"}</div>${pct(L.disk)}</div>
     <div><div class="lbl">Host</div><div class="big" style="font-size:1rem;line-height:1.4">${esc(h.type)}</div><div class="sub mono">${esc(h.id)}</div></div>`;
-  $("live-at").textContent = `EC2 · ${h.region}`;
+  $("live-at").textContent = `EC2 · ${h.region} · CPU/memory live in CloudWatch ↗`;
 
   $("ledger").innerHTML = GATES.map(([k,name,tool,pol]) => {
     const g = DATA.gates[k] || {}, s = statusOf(k), c = v => `<td class="num ${v ? "" : "z"}">${v ?? "—"}</td>`;
@@ -236,4 +356,7 @@ function render(){
     <span>Live view: the CloudWatch dashboard link above refreshes automatically</span>`;
 }
 render();
+$("hist").innerHTML = (DATA.history||[]).map(h => {
+  const c = h.result === "Released" ? "pass" : h.result === "Blocked" ? "fail" : "warn";
+  return `<li><span class="mono">#${h.build} · ${esc(h.t)}</span><span><span class="chip ${c}">${esc(h.result)}</span></span><span class="d">${esc(h.detail)} <span class="mono" style="color:var(--muted)">${esc(h.commit)}</span></span></li>`;}).join("");
 </script>
