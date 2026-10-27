@@ -84,14 +84,7 @@ touch /var/log/curasecure-health.log
 echo '* * * * * root /usr/local/bin/curasecure-health.sh' > /etc/cron.d/curasecure-health
 chmod 644 /etc/cron.d/curasecure-health
 
-# Let the Jenkins pipeline find the region (scripts/cw-publish.py also falls back to IMDSv2)
-mkdir -p /etc/systemd/system/jenkins.service.d
-cat > /etc/systemd/system/jenkins.service.d/aws.conf <<EOF
-[Service]
-Environment="AWS_DEFAULT_REGION=$REGION"
-EOF
-systemctl daemon-reload && systemctl restart jenkins
-
+# No Jenkins restart needed: scripts/cw-publish.py reads the region from IMDSv2.
 /usr/local/bin/curasecure-health.sh || true
 echo "CloudWatch monitoring ready for $INSTANCE_ID in $REGION."
 echo "Next: create the dashboard (run infra/create-dashboard.sh in AWS CloudShell)."
