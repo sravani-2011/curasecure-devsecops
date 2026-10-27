@@ -182,6 +182,8 @@ pipeline {
         always {
             // Always produce the combined summary so blocked builds are documented too
             sh '[ -f reports/security-summary.json ] || $GATE publish reports/security-summary.json "$BUILD_NUMBER" "${GIT_SHORT:-unknown}" "blocked-before-push" || true'
+            // Push gate results to CloudWatch (CuraSecure-DevSecOps dashboard). Never fails the build.
+            sh "python3 scripts/cw-publish.py ${currentBuild.currentResult} ${currentBuild.duration} || true"
             archiveArtifacts artifacts: 'reports/**', allowEmptyArchive: true, fingerprint: true
             sh 'docker logout || true; docker image prune -f || true'
         }
